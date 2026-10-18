@@ -26,12 +26,20 @@ namespace ChallengeRuns.Floors
         // Set when an arena floor is built: the floor's normal combat rooms, used as wave templates.
         public static GenericRoomTable WaveRooms;
 
-        // Bumped on every level load so coroutines from a previous floor stop themselves.
+        // Bumped whenever a floor starts generating or loads, so a wave loop from an earlier floor stops itself.
         private static int levelToken;
+        private static Coroutine running;
+
+        public static void Stop()
+        {
+            levelToken++;
+            if (running != null && Plugin.Instance != null) Plugin.Instance.StopCoroutine(running);
+            running = null;
+        }
 
         public static void OnLevelLoaded()
         {
-            levelToken++;
+            Stop();
             if (!ChallengeManager.IsActive("arena")) return;
 
             var rooms = GameManager.Instance.Dungeon?.data?.rooms;
@@ -42,7 +50,7 @@ namespace ChallengeRuns.Floors
                 return;
             }
             Debug.Log("[Challenge Runs] Arena room found; waves start when you walk in.");
-            Plugin.Instance.StartCoroutine(RunArena(arena, levelToken));
+            running = Plugin.Instance.StartCoroutine(RunArena(arena, levelToken));
         }
 
         private static IEnumerator RunArena(RoomHandler room, int token)

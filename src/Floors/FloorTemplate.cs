@@ -80,15 +80,15 @@ namespace ChallengeRuns.Floors
         // A shop variant with 2+ doors so it can sit on a linear trail; null if the floor has none.
         public DungeonFlowNode MakePassThroughShop(DungeonFlow flow)
         {
-            var room = PickPassThrough(Shop != null ? RoomsOf(Shop) : new List<PrototypeDungeonRoom>())
-                       ?? PickPassThrough(RoomsOf(SharedAssets.ShopRoomTable));
+            var room = PickWithDoors(Shop != null ? RoomsOf(Shop) : new List<PrototypeDungeonRoom>(), 2)
+                       ?? PickWithDoors(RoomsOf(SharedAssets.ShopRoomTable), 2);
             return room == null ? null : FlowFactory.NewNode(flow, PrototypeDungeonRoom.RoomCategory.SPECIAL, room);
         }
 
         // Same idea for an NPC/shrine room; null if every variant is a dead end.
         public DungeonFlowNode MakePassThrough(DungeonFlow flow, DungeonFlowNode special)
         {
-            var room = PickPassThrough(RoomsOf(special));
+            var room = PickWithDoors(RoomsOf(special), 2);
             if (room == null) return null;
             var node = FlowFactory.Clone(flow, special);
             node.overrideExactRoom = room;
@@ -111,9 +111,9 @@ namespace ChallengeRuns.Floors
             return rooms;
         }
 
-        private static PrototypeDungeonRoom PickPassThrough(List<PrototypeDungeonRoom> rooms)
+        private static PrototypeDungeonRoom PickWithDoors(List<PrototypeDungeonRoom> rooms, int minDoors)
         {
-            var ok = rooms.Where(r => r.exitData?.exits != null && r.exitData.exits.Count >= 2).ToList();
+            var ok = rooms.Where(r => r.exitData?.exits != null && r.exitData.exits.Count >= minDoors).ToList();
             return ok.Count == 0 ? null : ok[UnityEngine.Random.Range(0, ok.Count)];
         }
 
@@ -223,7 +223,8 @@ namespace ChallengeRuns.Floors
 
         // The NPC rooms (Winchester, Gunsling King, Chancelot, ...) the game assigned to this floor
         // at the start of the run. They normally hang off the layout as side rooms, so they're
-        // taken out of the run's blueprint; any NPC with a two-door room comes back as a trail stop.
+        // taken out of the run's blueprint and placed by the layout instead: Marathon needs rooms
+        // with two doors (trail stops), Arena takes any (behind a spare arena door).
         private static readonly Dictionary<List<RuntimeInjectionMetadata>, List<PrototypeDungeonRoom>> takenBlueprints =
             new Dictionary<List<RuntimeInjectionMetadata>, List<PrototypeDungeonRoom>>();
 
@@ -231,7 +232,7 @@ namespace ChallengeRuns.Floors
 
         // Picks the trail-friendly NPC rooms; the blueprint itself is only emptied by
         // CommitBlueprintChanges once the whole floor has been built.
-        public List<PrototypeDungeonRoom> TakeBlueprintNpcRooms()
+        public List<PrototypeDungeonRoom> TakeBlueprintNpcRooms(int minDoors)
         {
             var blueprint = MetaInjectionData.CurrentRunBlueprint;
             if (blueprint == null || !blueprint.ContainsKey(Tileset)) return new List<PrototypeDungeonRoom>();
@@ -245,7 +246,7 @@ namespace ChallengeRuns.Floors
             {
                 foreach (var meta in entries)
                 {
-                    var room = PickPassThroughNpcRoom(meta);
+                    var room = PickNpcRoom(meta, minDoors);
                     if (room != null) rooms.Add(room);
                 }
             }
@@ -262,7 +263,7 @@ namespace ChallengeRuns.Floors
             pendingEmptyBlueprint = null;
         }
 
-        private static PrototypeDungeonRoom PickPassThroughNpcRoom(RuntimeInjectionMetadata meta)
+        private static PrototypeDungeonRoom PickNpcRoom(RuntimeInjectionMetadata meta, int minDoors)
         {
             var options = meta.AssignedModifierData != null
                 ? new List<ProceduralFlowModifierData> { meta.AssignedModifierData }
@@ -274,7 +275,7 @@ namespace ChallengeRuns.Floors
                 if (mod.prerequisites != null && !SafeCheck(() => mod.prerequisites.All(p => p.CheckConditionsFulfilled())))
                     continue;
                 var rooms = mod.exactRoom != null ? new List<PrototypeDungeonRoom> { mod.exactRoom } : RoomsOf(mod.roomTable);
-                var room = PickPassThrough(rooms);
+                var room = PickWithDoors(rooms, minDoors);
                 if (room != null) return room;
             }
             return null;
@@ -363,9 +364,10 @@ namespace ChallengeRuns.Floors
         private static PrototypeDungeonRoom rewardRoom, bossFoyer;
         private static GenericRoomTable shopRoomTable;
 
-        public static PrototypeDungeonRoom RewardRoom => rewardRoom ?? (rewardRoom = Load<PrototypeDungeonRoom>("reward room"));
-        public static PrototypeDungeonRoom BossFoyer => bossFoyer ?? (bossFoyer = Load<PrototypeDungeonRoom>("boss foyer"));
-        public static GenericRoomTable ShopRoomTable => shopRoomTable ?? (shopRoomTable = Load<GenericRoomTable>("Shop Room Table"));
+        // Unity's null check (not ??), so an asset that got unloaded is loaded again instead of reused.
+        public static PrototypeDungeonRoom RewardRoom => rewardRoom ? rewardRoom : (rewardRoom = Load<PrototypeDungeonRoom>("reward room"));
+        public static PrototypeDungeonRoom BossFoyer => bossFoyer ? bossFoyer : (bossFoyer = Load<PrototypeDungeonRoom>("boss foyer"));
+        public static GenericRoomTable ShopRoomTable => shopRoomTable ? shopRoomTable : (shopRoomTable = Load<GenericRoomTable>("Shop Room Table"));
 
         private static T Load<T>(string name) where T : UnityEngine.Object
         {

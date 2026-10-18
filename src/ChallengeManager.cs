@@ -87,6 +87,7 @@ namespace ChallengeRuns
         public static ConfigEntry<bool> MarathonAllowSideRooms;
         public static ConfigEntry<int> ArenaWaves;
         public static ConfigEntry<int> ArenaChestRooms;
+        public static ConfigEntry<bool> ArenaAllowSideRooms;
 
         // The run's challenge set is locked in when the run starts, so toggling
         // the menu mid-run (e.g. via console) can't change an in-progress run.
@@ -115,6 +116,10 @@ namespace ChallengeRuns
                 "Off keeps the floor a single trail with no forks.");
             ArenaWaves = config.Bind("Arena", "Waves", 50, "Enemy waves per floor.");
             ArenaChestRooms = config.Bind("Arena", "ChestRooms", 3, "Chest rooms unlocked after the waves (max 5).");
+            ArenaAllowSideRooms = config.Bind("Arena", "AllowInjectedSideRooms", false,
+                "Let the game add its usual extra rooms (secret rooms, shrines, some NPCs, etc.) around the arena floor. " +
+                "Off keeps the floor to the arena, chests, shop and bosses, with the floor's NPCs behind the arena's spare doors, " +
+                "and makes arena floors load far more reliably.");
         }
 
         // Floor 1 generates before the run's first level-loaded event, so lock the
@@ -126,6 +131,15 @@ namespace ChallengeRuns
             foreach (var c in All.Where(c => c.Enabled.Value))
                 activeThisRun.Add(c.Id);
             runLocked = true;
+        }
+
+        // A run floor is being built (also the first floor of a quick restart): the run is no longer
+        // over, and whatever was still running on the previous floor has to stop.
+        public static void OnFloorGenerating()
+        {
+            RunEnded = false;
+            EnsureRunLocked();
+            Floors.ArenaController.Stop();
         }
 
         public static Challenge Get(string id) => All.FirstOrDefault(c => c.Id == id);

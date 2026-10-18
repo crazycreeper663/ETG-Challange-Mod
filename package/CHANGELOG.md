@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.4
+- Fixed: after you went back to the Breach, the mod stopped noticing new floors. The next run kept the previous run's challenges even if you changed them, Glass Cannon and Gun Roulette weren't set up, and Arena waves never started.
+- Arena floors no longer get the game's injected side rooms (secret rooms, shrines and the like) by default. With them on, most floor layouts failed to generate around the arena, and the quick-restart freeze happened right after one of those layouts finally went through. Set `[Arena] AllowInjectedSideRooms` to get them back.
+- The NPCs the game assigns to each floor (Winchester, Gunsling King, etc.) now sit behind the arena's spare doors.
+- A new floor starting (including a quick restart) now stops anything still running from the previous Arena floor and closes the game-over picker.
+
 ## 0.3.3
 - Fixed: Arena waves never started. The mod couldn't find the arena room after the floor loaded, so the doors never locked and no enemies spawned.
 - Each Arena wave is now one of the floor's real combat rooms' worth of enemies, including random-enemy slots and reinforcements. The next wave comes once all of them are dead.

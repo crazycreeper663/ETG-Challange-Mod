@@ -17,12 +17,12 @@ Marathon and Arena can't be on at the same time. Either one can be combined with
 
 ### Floor modes in detail
 - **Marathon** is strictly linear: each room leads to exactly one new room, with no forks. Shops and NPC rooms sit on the path, so only versions of those rooms with 2+ doors are used. NPC rooms that only come in a one-door version are skipped. If a floor has no shop with two doors, that shop becomes a short dead end, and a warning is logged.
-- The game normally adds extras as side rooms: some NPCs, secret floor entrances, the rat. Marathon turns these off by default to keep the trail linear. Set `AllowInjectedSideRooms = true` to get them back as small side branches.
-- **Arena** seals the room when you walk in and runs the waves. Each cleared wave has the same chance to drop a pickup as clearing a normal room, and ammo plus a half heart drop every 10 waves.
+- The game normally adds extras as side rooms: some NPCs, secret floor entrances, the rat. Marathon and Arena both turn these off by default: Marathon to keep the trail linear, Arena because most floor layouts failed to generate around the arena with them on. Set `AllowInjectedSideRooms = true` in either section to get them back as small side branches.
+- **Arena** seals the room when you walk in and runs the waves. The NPCs the game assigns to the floor (Winchester, Gunsling King, etc.) sit behind the arena's spare doors, so you reach them once the waves are done. Each cleared wave has the same chance to drop a pickup as clearing a normal room, and ammo plus a half heart drop every 10 waves.
 - **Bosses:** on floors with several possible bosses (Keep, Gungeon Proper, Black Powder Mine, Hollow), you fight all of them in random order, and each gives its normal reward. The Forge and Bullet Hell only have one boss each, so those floors are unchanged.
 - **Skipped floors:** the Breach, the tutorial, the Resourceful Rat's lair and character Pasts are never changed.
 
-Settings live in the config file under `[Marathon]` (rooms per floor, min/max shops, side rooms) and `[Arena]` (waves, chest rooms).
+Settings live in the config file under `[Marathon]` (rooms per floor, min/max shops, side rooms) and `[Arena]` (waves, chest rooms, side rooms).
 
 ## Choosing challenges
 - **In game:** press **F6** in the Breach to open the picker. It also opens by itself on the game over and victory screens, so you can change challenges before you Quick Restart or go back to the Breach.
