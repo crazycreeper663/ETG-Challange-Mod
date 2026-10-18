@@ -15,7 +15,12 @@ namespace ChallengeRuns.Floors
 
         private static PrototypeDungeonRoom cached;
 
-        public static PrototypeDungeonRoom Get() => cached ?? (cached = Build());
+        // Unity's null check (not ??), so a destroyed room is rebuilt instead of reused.
+        public static PrototypeDungeonRoom Get()
+        {
+            if (!cached) cached = Build();
+            return cached;
+        }
 
         // Match on the room's recorded name (what the game itself logs, e.g. "There are no reinforcement
         // waves in room: ChallengeRuns_Arena"); area.prototypeRoom isn't reliably still set once the floor loads.
@@ -29,6 +34,9 @@ namespace ChallengeRuns.Floors
         {
             var room = ScriptableObject.CreateInstance<PrototypeDungeonRoom>();
             room.name = Name;
+            // Made in code, so there's no asset to reload it from: keep Unity's asset cleanup between
+            // floors from destroying it.
+            room.hideFlags = HideFlags.DontUnloadUnusedAsset;
             room.GUID = System.Guid.NewGuid().ToString();
             room.RoomId = Random.Range(10000, 1000000);
             room.category = PrototypeDungeonRoom.RoomCategory.NORMAL;

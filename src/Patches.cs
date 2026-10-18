@@ -28,6 +28,14 @@ namespace ChallengeRuns
         }
     }
 
+    // Going back to the Breach replaces the GameManager, and with it every level-loaded subscriber.
+    // Without re-hooking, every run after the first went unnoticed (ExpandTheGungeon does the same).
+    [HarmonyPatch(typeof(GameManager), "Awake")]
+    internal static class GameManagerAwakePatch
+    {
+        private static void Postfix(GameManager __instance) => Plugin.HookLevelLoads(__instance);
+    }
+
     // The Ammonomicon's death/victory pages set themselves up here, which is when the run is over.
     [HarmonyPatch(typeof(AmmonomiconDeathPageController), nameof(AmmonomiconDeathPageController.DoInitialize))]
     internal static class RunEndedPatch

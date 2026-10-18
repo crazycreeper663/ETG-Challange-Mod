@@ -48,7 +48,7 @@ namespace ChallengeRuns.Floors
                 // Optional extra: if it fails, the trail is still built, just without these NPCs.
                 try
                 {
-                    foreach (var room in t.TakeBlueprintNpcRooms())
+                    foreach (var room in t.TakeBlueprintNpcRooms(minDoors: 2))
                         stops.Add(FloorTemplate.NodeFor(flow, room));
                 }
                 catch (System.Exception e)

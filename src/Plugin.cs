@@ -10,7 +10,7 @@ namespace ChallengeRuns
     {
         public const string GUID = "oakesnoah.etg.challengeruns";
         public const string NAME = "Challenge Runs";
-        public const string VERSION = "0.3.3"; // keep in sync with <Version> in the .csproj
+        public const string VERSION = "0.3.4"; // keep in sync with <Version> in the .csproj
 
         public static Plugin Instance { get; private set; }
 
@@ -47,10 +47,18 @@ namespace ChallengeRuns
 
         private void OnGameManagerStart(GameManager gm)
         {
-            gm.OnNewLevelFullyLoaded += ChallengeManager.OnLevelLoaded;
+            HookLevelLoads(gm);
             gameObject.AddComponent<ChallengeMenu>();
             ConsoleCommands.Register();
             ETGModConsole.Log($"{NAME} v{VERSION} loaded. Press F6 in the Breach or on the game over screen, or type 'challenge help'.");
+        }
+
+        // The game makes a new GameManager every time you go back to the Breach, so this also runs from
+        // GameManagerAwakePatch. Removing first means a GameManager never gets it twice.
+        public static void HookLevelLoads(GameManager gm)
+        {
+            gm.OnNewLevelFullyLoaded -= ChallengeManager.OnLevelLoaded;
+            gm.OnNewLevelFullyLoaded += ChallengeManager.OnLevelLoaded;
         }
 
         public void Update()

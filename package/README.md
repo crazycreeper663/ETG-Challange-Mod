@@ -26,6 +26,6 @@ Starter Gun Only / Gun Roulette and Marathon / Arena are mutually exclusive pair
 ## Settings
 Settings are in `BepInEx/config/oakesnoah.etg.challengeruns.cfg`; r2modman's Config editor can change them.
 - `[Marathon]`: rooms per floor, min/max shops, and whether the game can add its usual side rooms.
-- `[Arena]`: number of waves and number of chest rooms.
+- `[Arena]`: number of waves, number of chest rooms, and whether the game can add its usual side rooms.
 
 If Marathon floors fail to load, lower `CombatRoomsPerFloor`.
