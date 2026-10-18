@@ -17,7 +17,6 @@ Your picks are saved between sessions. They lock in when a run starts and can on
 | `starter` | Starter Gun Only | You can't pick up new guns |
 | `roulette` | Gun Roulette | Random gun after every room clear, no switching guns |
 | `sponge` | Bullet Sponges | Enemies and bosses have 2× HP |
-| `jammed` | Fully Jammed | Every enemy is Jammed |
 | `blankless` | Blankless | You can't hold blanks |
 | `marathon` | Marathon | Each floor is one long trail of 100 rooms with chests, shops and NPCs along the way, then every boss the floor can roll, back to back |
 | `arena` | Arena | Each floor is one big room with 50 waves of enemies, then chest rooms, a shop and every boss the floor can roll |

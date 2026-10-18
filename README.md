@@ -9,7 +9,6 @@ Choose challenge modifiers in the Breach, then start a run. You can stack them.
 | `starter` | Starter Gun Only | You can't pick up new guns |
 | `roulette` | Gun Roulette | Random gun after every room clear, no switching guns |
 | `sponge` | Bullet Sponges | Enemies and bosses have 2x HP |
-| `jammed` | Fully Jammed | Every enemy is Jammed |
 | `blankless` | Blankless | You can't hold blanks |
 | `marathon` | Marathon | Each floor is a single trail of 100 combat rooms. Chests, 2–5 shops and NPC rooms sit along it, and it ends with every boss the floor can roll, one after another |
 | `arena` | Arena | Each floor is one big room with 50 waves of enemies from that floor. Clearing it opens the chest rooms, a shop and the full boss gauntlet |
@@ -35,7 +34,7 @@ Your choices are saved between sessions. They lock in when a run starts and can 
 ## Installing with r2modman
 1. In r2modman, select Enter the Gungeon and your profile.
 2. Install **Mod the Gungeon API** from the online list if you don't already have it. It brings in the BepInEx pack.
-3. Go to **Settings → Profile → Import local mod**, choose `dist/oakesnoah-ChallengeRuns-0.3.1.zip`, and confirm.
+3. Go to **Settings → Profile → Import local mod**, choose `dist/oakesnoah-ChallengeRuns-0.3.2.zip`, and confirm.
 4. Launch with **Start modded**. In the Breach, press F6, or open the console with F2 and type `challenge help`.
 
 ## Building

@@ -61,12 +61,6 @@ namespace ChallengeRuns
             },
             new Challenge
             {
-                Id = "jammed",
-                Name = "Fully Jammed",
-                Description = "Every enemy spawns Jammed.",
-            },
-            new Challenge
-            {
                 Id = "blankless",
                 Name = "Blankless",
                 Description = "You can never hold blanks.",
