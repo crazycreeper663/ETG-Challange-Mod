@@ -118,7 +118,7 @@ namespace ChallengeRuns
             ArenaChestRooms = config.Bind("Arena", "ChestRooms", 3, "Chest rooms unlocked after the waves (max 5).");
             ArenaAllowSideRooms = config.Bind("Arena", "AllowInjectedSideRooms", false,
                 "Let the game add its usual extra rooms (secret rooms, shrines, some NPCs, etc.) around the arena floor. " +
-                "Off keeps the floor to the arena, chests, shop and bosses, with the floor's NPCs behind the arena's spare doors, " +
+                "Off keeps the floor to the arena, chests, shop and bosses, with the floor's NPCs on the reward trail, " +
                 "and makes arena floors load far more reliably.");
         }
 
@@ -154,6 +154,7 @@ namespace ChallengeRuns
         {
             if (RunEnded) return;
             RunEnded = true;
+            Floors.ArenaController.Stop();
             // Unlock so whatever is picked now applies when the next run generates.
             runLocked = false;
         }
@@ -183,6 +184,10 @@ namespace ChallengeRuns
         public static void OnLevelLoaded()
         {
             RunEnded = false;
+            // Every level load, the Breach included: waves from the floor you left must stop, and the
+            // next floor starts with a clean count of generation tries.
+            Floors.ArenaController.Stop();
+            Floors.FlowPatch.ResetTries();
             if (InBreach)
             {
                 activeThisRun.Clear();

@@ -228,6 +228,10 @@ namespace ChallengeRuns.Floors
         private static readonly Dictionary<List<RuntimeInjectionMetadata>, List<PrototypeDungeonRoom>> takenBlueprints =
             new Dictionary<List<RuntimeInjectionMetadata>, List<PrototypeDungeonRoom>>();
 
+        // What each emptied blueprint held, so it can be put back if the floor ends up using its normal layout.
+        private static readonly Dictionary<List<RuntimeInjectionMetadata>, List<RuntimeInjectionMetadata>> originalBlueprints =
+            new Dictionary<List<RuntimeInjectionMetadata>, List<RuntimeInjectionMetadata>>();
+
         private List<RuntimeInjectionMetadata> pendingEmptyBlueprint;
 
         // Picks the trail-friendly NPC rooms; the blueprint itself is only emptied by
@@ -253,6 +257,7 @@ namespace ChallengeRuns.Floors
 
             pendingEmptyBlueprint = new List<RuntimeInjectionMetadata>();
             takenBlueprints[pendingEmptyBlueprint] = rooms;
+            originalBlueprints[pendingEmptyBlueprint] = entries;
             return rooms;
         }
 
@@ -261,6 +266,16 @@ namespace ChallengeRuns.Floors
             if (pendingEmptyBlueprint == null || MetaInjectionData.CurrentRunBlueprint == null) return;
             MetaInjectionData.CurrentRunBlueprint[Tileset] = pendingEmptyBlueprint;
             pendingEmptyBlueprint = null;
+        }
+
+        // Undoes CommitBlueprintChanges for this floor, for when it gets its normal layout after all.
+        public void RestoreBlueprint()
+        {
+            var blueprint = MetaInjectionData.CurrentRunBlueprint;
+            if (blueprint == null || !blueprint.ContainsKey(Tileset)) return;
+            var current = blueprint[Tileset];
+            if (current != null && originalBlueprints.TryGetValue(current, out var original))
+                blueprint[Tileset] = original;
         }
 
         private static PrototypeDungeonRoom PickNpcRoom(RuntimeInjectionMetadata meta, int minDoors)
@@ -280,6 +295,8 @@ namespace ChallengeRuns.Floors
             }
             return null;
         }
+
+        public static int DoorCount(PrototypeDungeonRoom room) => room?.exitData?.exits?.Count ?? 0;
 
         public static DungeonFlowNode NodeFor(DungeonFlow flow, PrototypeDungeonRoom room) =>
             FlowFactory.NewNode(flow, room.category, room);
