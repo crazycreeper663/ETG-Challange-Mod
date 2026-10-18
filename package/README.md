@@ -19,7 +19,7 @@ Your picks are saved between sessions. They lock in when a run starts and can on
 | `sponge` | Bullet Sponges | Enemies and bosses have 2× HP |
 | `blankless` | Blankless | You can't hold blanks |
 | `marathon` | Marathon | Each floor is one long trail of 100 rooms with chests, shops and NPCs along the way, then every boss the floor can roll, back to back |
-| `arena` | Arena | Each floor is one big room with 50 waves of enemies, then chest rooms, a shop and every boss the floor can roll |
+| `arena` | Arena | Each floor is one big room with 50 waves (each one a combat room's worth of that floor's enemies, with the usual room-clear pickup chance after each), then chest rooms, a shop and every boss the floor can roll |
 
 Starter Gun Only / Gun Roulette and Marathon / Arena are mutually exclusive pairs.
 

@@ -11,14 +11,14 @@ Choose challenge modifiers in the Breach, then start a run. You can stack them.
 | `sponge` | Bullet Sponges | Enemies and bosses have 2x HP |
 | `blankless` | Blankless | You can't hold blanks |
 | `marathon` | Marathon | Each floor is a single trail of 100 combat rooms. Chests, 2–5 shops and NPC rooms sit along it, and it ends with every boss the floor can roll, one after another |
-| `arena` | Arena | Each floor is one big room with 50 waves of enemies from that floor. Clearing it opens the chest rooms, a shop and the full boss gauntlet |
+| `arena` | Arena | Each floor is one big room with 50 waves of enemies; each wave is one of that floor's combat rooms' worth of enemies. Clearing it opens the chest rooms, a shop and the full boss gauntlet |
 
 Marathon and Arena can't be on at the same time. Either one can be combined with the other challenges.
 
 ### Floor modes in detail
 - **Marathon** is strictly linear: each room leads to exactly one new room, with no forks. Shops and NPC rooms sit on the path, so only versions of those rooms with 2+ doors are used. NPC rooms that only come in a one-door version are skipped. If a floor has no shop with two doors, that shop becomes a short dead end, and a warning is logged.
 - The game normally adds extras as side rooms: some NPCs, secret floor entrances, the rat. Marathon turns these off by default to keep the trail linear. Set `AllowInjectedSideRooms = true` to get them back as small side branches.
-- **Arena** seals the room when you walk in and runs the waves. Wave size grows from 3 to 12 enemies. Ammo and a half heart drop every 10 waves.
+- **Arena** seals the room when you walk in and runs the waves. Each cleared wave has the same chance to drop a pickup as clearing a normal room, and ammo plus a half heart drop every 10 waves.
 - **Bosses:** on floors with several possible bosses (Keep, Gungeon Proper, Black Powder Mine, Hollow), you fight all of them in random order, and each gives its normal reward. The Forge and Bullet Hell only have one boss each, so those floors are unchanged.
 - **Skipped floors:** the Breach, the tutorial, the Resourceful Rat's lair and character Pasts are never changed.
 
@@ -34,7 +34,7 @@ Your choices are saved between sessions. They lock in when a run starts and can 
 ## Installing with r2modman
 1. In r2modman, select Enter the Gungeon and your profile.
 2. Install **Mod the Gungeon API** from the online list if you don't already have it. It brings in the BepInEx pack.
-3. Go to **Settings → Profile → Import local mod**, choose `dist/oakesnoah-ChallengeRuns-0.3.2.zip`, and confirm.
+3. Go to **Settings → Profile → Import local mod**, choose `dist/oakesnoah-ChallengeRuns-0.3.3.zip`, and confirm.
 4. Launch with **Start modded**. In the Breach, press F6, or open the console with F2 and type `challenge help`.
 
 ## Building

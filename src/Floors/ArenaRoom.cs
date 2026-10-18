@@ -17,8 +17,13 @@ namespace ChallengeRuns.Floors
 
         public static PrototypeDungeonRoom Get() => cached ?? (cached = Build());
 
-        public static bool Is(RoomHandler room) =>
-            room?.area?.prototypeRoom != null && room.area.prototypeRoom.name == Name;
+        // Match on the room's recorded name (what the game itself logs, e.g. "There are no reinforcement
+        // waves in room: ChallengeRuns_Arena"); area.prototypeRoom isn't reliably still set once the floor loads.
+        public static bool Is(RoomHandler room)
+        {
+            var name = room?.GetRoomName();
+            return name != null && name.StartsWith(Name);
+        }
 
         private static PrototypeDungeonRoom Build()
         {
@@ -27,6 +32,7 @@ namespace ChallengeRuns.Floors
             room.GUID = System.Guid.NewGuid().ToString();
             room.RoomId = Random.Range(10000, 1000000);
             room.category = PrototypeDungeonRoom.RoomCategory.NORMAL;
+            room.PreventMirroring = true;
             room.subCategoryNormal = PrototypeDungeonRoom.RoomNormalSubCategory.COMBAT;
             room.subCategoryBoss = PrototypeDungeonRoom.RoomBossSubCategory.FLOOR_BOSS;
             room.subCategorySpecial = PrototypeDungeonRoom.RoomSpecialSubCategory.UNSPECIFIED_SPECIAL;
