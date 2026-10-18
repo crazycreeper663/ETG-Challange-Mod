@@ -24,6 +24,9 @@ namespace ChallengeRuns.Floors
             Add(flow, t.MakeShop(flow), arena);
 
             AttachBossChain(flow, t, arena);
+
+            // Each wave is one of this floor's normal combat rooms' worth of enemies.
+            ArenaController.WaveRooms = t.CombatRoomTable;
             return flow;
         }
     }

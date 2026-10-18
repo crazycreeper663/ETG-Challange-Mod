@@ -102,6 +102,8 @@ namespace ChallengeRuns.Floors
             return RoomsOf(node.overrideRoomTable);
         }
 
+        public static List<PrototypeDungeonRoom> AllRooms(GenericRoomTable table) => RoomsOf(table);
+
         private static List<PrototypeDungeonRoom> RoomsOf(GenericRoomTable table)
         {
             var rooms = new List<PrototypeDungeonRoom>();

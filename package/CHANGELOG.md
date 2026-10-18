@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.3
+- Fixed: Arena waves never started. The mod couldn't find the arena room after the floor loaded, so the doors never locked and no enemies spawned.
+- Each Arena wave is now one of the floor's real combat rooms' worth of enemies, including random-enemy slots and reinforcements. The next wave comes once all of them are dead.
+- Enemies that don't count towards clearing a room (turrets and the like) are left out of waves so they can't stall them, and leftovers are cleared between waves.
+- A failed enemy spawn can no longer stop the waves while the arena is locked.
+
 ## 0.3.2
 - Removed the Fully Jammed challenge.
 
