@@ -140,7 +140,17 @@ namespace ChallengeRuns.Floors
         // Entrance -> ... -> parent -> [foyer -> boss] x N -> original post-boss rooms (exit, etc).
         public static void AttachBossChain(DungeonFlow flow, FloorTemplate t, DungeonFlowNode parent)
         {
-            var bossRooms = t.OneRoomPerBoss();
+            // If reading the boss list fails, still build the floor; it just ends in the usual single boss.
+            List<PrototypeDungeonRoom> bossRooms;
+            try
+            {
+                bossRooms = t.OneRoomPerBoss();
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[Challenge Runs] Couldn't read this floor's boss list, using one boss: {e}");
+                bossRooms = new List<PrototypeDungeonRoom>();
+            }
             DungeonFlowNode cursor = parent;
             DungeonFlowNode lastBoss;
 

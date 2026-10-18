@@ -44,8 +44,18 @@ namespace ChallengeRuns.Floors
             }
 
             if (!allowSideRooms)
-                foreach (var room in t.TakeBlueprintNpcRooms())
-                    stops.Add(FloorTemplate.NodeFor(flow, room));
+            {
+                // Optional extra: if it fails, the trail is still built, just without these NPCs.
+                try
+                {
+                    foreach (var room in t.TakeBlueprintNpcRooms())
+                        stops.Add(FloorTemplate.NodeFor(flow, room));
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError($"[Challenge Runs] Couldn't move this floor's NPCs onto the trail: {e}");
+                }
+            }
 
             Shuffle(stops);
 
@@ -72,6 +82,7 @@ namespace ChallengeRuns.Floors
             }
 
             AttachBossChain(flow, t, cursor);
+            t.CommitBlueprintChanges();
             return flow;
         }
     }

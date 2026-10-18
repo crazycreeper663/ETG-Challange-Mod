@@ -35,7 +35,7 @@ Your choices are saved between sessions. They lock in when a run starts and can 
 ## Installing with r2modman
 1. In r2modman, select Enter the Gungeon and your profile.
 2. Install **Mod the Gungeon API** from the online list if you don't already have it. It brings in the BepInEx pack.
-3. Go to **Settings → Profile → Import local mod**, choose `dist/oakesnoah-ChallengeRuns-0.3.0.zip`, and confirm.
+3. Go to **Settings → Profile → Import local mod**, choose `dist/oakesnoah-ChallengeRuns-0.3.1.zip`, and confirm.
 4. Launch with **Start modded**. In the Breach, press F6, or open the console with F2 and type `challenge help`.
 
 ## Building

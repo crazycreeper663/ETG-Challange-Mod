@@ -247,7 +247,9 @@ namespace ChallengeRuns
         {
             if (!IsActive("roulette") || player == null || player.IsGhost) return;
 
-            var prefab = PickupObjectDatabase.GetRandomGun();
+            // Same gun pool chests draw from; lower qualities come up more often.
+            var quality = RouletteQualities[UnityEngine.Random.Range(0, RouletteQualities.Length)];
+            var prefab = LootEngine.GetItemOfTypeAndQuality<Gun>(quality, GameManager.Instance.RewardManager.GunsLootTable, false);
             if (prefab == null) return;
 
             var oldGuns = player.inventory.AllGuns.ToList();
@@ -263,14 +265,20 @@ namespace ChallengeRuns
                 GrantingGun = false;
             }
 
-            var newGun = player.inventory.AllGuns.FirstOrDefault(g => !oldGuns.Contains(g));
-            if (newGun != null)
-            {
+            // Once the old guns are gone the new one is the only gun left, so it's the one in hand.
+            if (player.inventory.AllGuns.Any(g => !oldGuns.Contains(g)))
                 foreach (var g in oldGuns)
                     player.inventory.RemoveGunFromInventory(g);
-                player.ChangeToGunSlot(player.inventory.AllGuns.IndexOf(newGun), false);
-            }
             player.inventory.GunLocked.SetOverride(Plugin.GUID, true);
         }
+
+        private static readonly PickupObject.ItemQuality[] RouletteQualities =
+        {
+            PickupObject.ItemQuality.D, PickupObject.ItemQuality.D, PickupObject.ItemQuality.D,
+            PickupObject.ItemQuality.C, PickupObject.ItemQuality.C, PickupObject.ItemQuality.C,
+            PickupObject.ItemQuality.B, PickupObject.ItemQuality.B,
+            PickupObject.ItemQuality.A,
+            PickupObject.ItemQuality.S,
+        };
     }
 }
