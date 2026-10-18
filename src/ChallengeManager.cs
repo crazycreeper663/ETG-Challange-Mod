@@ -100,6 +100,10 @@ namespace ChallengeRuns
         private static readonly HashSet<PlayerController> initializedPlayers = new HashSet<PlayerController>();
         private static bool runLocked;
 
+        // True while the death/victory screen is up: the run is over, so the next one
+        // (quick restart or back to the Breach) can be set up from there.
+        public static bool RunEnded { get; private set; }
+
         // Set while the mod itself hands out a gun, so Starter Only doesn't block it.
         public static bool GrantingGun;
 
@@ -136,13 +140,21 @@ namespace ChallengeRuns
 
         public static bool InBreach => GameManager.HasInstance && GameManager.Instance.IsFoyer;
 
-        public static bool CanEdit => !GameManager.HasInstance || GameManager.Instance.IsFoyer;
+        public static bool CanEdit => !GameManager.HasInstance || GameManager.Instance.IsFoyer || RunEnded;
+
+        public static void OnRunEnded()
+        {
+            if (RunEnded) return;
+            RunEnded = true;
+            // Unlock so whatever is picked now applies when the next run generates.
+            runLocked = false;
+        }
 
         public static string SetEnabled(string id, bool enabled)
         {
             var c = Get(id);
             if (c == null) return $"Unknown challenge '{id}'.";
-            if (!CanEdit) return "Challenges can only be changed in the Breach.";
+            if (!CanEdit) return "Challenges can only be changed in the Breach or on the game over screen.";
 
             c.Enabled.Value = enabled;
             if (enabled)
@@ -162,6 +174,7 @@ namespace ChallengeRuns
 
         public static void OnLevelLoaded()
         {
+            RunEnded = false;
             if (InBreach)
             {
                 activeThisRun.Clear();

@@ -10,6 +10,9 @@ namespace ChallengeRuns.Floors
     [HarmonyPatch(typeof(SemioticDungeonGenSettings), "GetRandomFlow")]
     internal static class FlowPatch
     {
+        // Run after other mods' patches here (e.g. layout mods) so a Marathon/Arena floor isn't
+        // swapped out again afterwards.
+        [HarmonyPriority(Priority.Last)]
         private static void Postfix(ref DungeonFlow __result)
         {
             if (__result == null || !GameManager.HasInstance) return;

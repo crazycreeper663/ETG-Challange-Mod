@@ -43,6 +43,10 @@ namespace ChallengeRuns.Floors
                 if (npc != null) stops.Add(npc);
             }
 
+            if (!allowSideRooms)
+                foreach (var room in t.TakeBlueprintNpcRooms())
+                    stops.Add(FloorTemplate.NodeFor(flow, room));
+
             Shuffle(stops);
 
             // Stop k goes right after combat room (k+1) * N / (stops+1), so they're evenly spaced.

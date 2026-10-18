@@ -11,6 +11,7 @@ namespace ChallengeRuns.Floors
     internal class FloorTemplate
     {
         public DungeonFlow Flow;
+        public GlobalDungeonData.ValidTilesets Tileset;
         public DungeonFlowNode Entrance;
         public DungeonFlowNode Boss;
         public DungeonFlowNode BossFoyer;
@@ -30,7 +31,11 @@ namespace ChallengeRuns.Floors
             var boss = bosses.FirstOrDefault(b => HasDescendant(flow, b, PrototypeDungeonRoom.RoomCategory.EXIT)) ?? bosses.FirstOrDefault();
             if (entrance == null || boss == null) return null;
 
-            var t = new FloorTemplate { Flow = flow, Entrance = entrance, Boss = boss };
+            var dungeon = GameManager.Instance.CurrentlyGeneratingDungeonPrefab;
+            if (dungeon == null) dungeon = GameManager.Instance.Dungeon;
+            if (dungeon == null) return null;
+
+            var t = new FloorTemplate { Flow = flow, Tileset = dungeon.tileIndices.tilesetId, Entrance = entrance, Boss = boss };
 
             var bossParent = flow.GetNodeFromGuid(boss.parentNodeGuid);
             if (bossParent != null && bossParent.roomCategory == PrototypeDungeonRoom.RoomCategory.CONNECTOR && bossParent.overrideExactRoom != null)
@@ -126,6 +131,44 @@ namespace ChallengeRuns.Floors
         // Every distinct boss this floor can roll, one room variant each, in random order.
         public List<PrototypeDungeonRoom> OneRoomPerBoss()
         {
+            // The game picks a floor's boss from BossManager (one room table per boss), not from
+            // the flow's boss node, so that's the real list of options.
+            var result = new List<PrototypeDungeonRoom>();
+            foreach (var table in BossTablesForFloor())
+            {
+                var rooms = RoomsOf(table);
+                if (rooms.Count > 0) result.Add(rooms[UnityEngine.Random.Range(0, rooms.Count)]);
+            }
+            if (result.Count == 0) result = BossRoomsFromNode();
+            FlowFactory.Shuffle(result);
+            return result;
+        }
+
+        private List<GenericRoomTable> BossTablesForFloor()
+        {
+            var tables = new List<GenericRoomTable>();
+            var manager = GameManager.Instance.BossManager;
+            if (manager == null) return tables;
+
+            var entry = manager.GetBossDataForFloor(Tileset);
+            if (entry?.Bosses != null)
+                foreach (var boss in entry.Bosses)
+                    if (boss?.TargetRoomTable != null && SafeCheck(boss.GlobalPrereqsValid))
+                        tables.Add(boss.TargetRoomTable);
+
+            // Rare bosses that can replace the usual pick on this floor.
+            if (manager.OverrideBosses != null)
+                foreach (var boss in manager.OverrideBosses)
+                    if (boss?.TargetRoomTable != null && (boss.AssociatedTilesets & Tileset) != 0 &&
+                        SafeCheck(() => boss.GlobalPrereqsValid(Tileset)))
+                        tables.Add(boss.TargetRoomTable);
+
+            return tables.Distinct().ToList();
+        }
+
+        // Fallback for floors BossManager doesn't cover: read the pool off the flow's boss node.
+        private List<PrototypeDungeonRoom> BossRoomsFromNode()
+        {
             var result = new List<PrototypeDungeonRoom>();
             if (Boss.overrideExactRoom != null)
             {
@@ -155,9 +198,71 @@ namespace ChallengeRuns.Floors
                 var rooms = group.ToList();
                 result.Add(rooms[UnityEngine.Random.Range(0, rooms.Count)]);
             }
-
-            FlowFactory.Shuffle(result);
             return result;
+        }
+
+        // The NPC rooms (Winchester, Gunsling King, Chancelot, ...) the game assigned to this floor
+        // at the start of the run. They normally hang off the layout as side rooms, so they're
+        // taken out of the run's blueprint; any NPC with a two-door room comes back as a trail stop.
+        private static readonly Dictionary<List<RuntimeInjectionMetadata>, List<PrototypeDungeonRoom>> takenBlueprints =
+            new Dictionary<List<RuntimeInjectionMetadata>, List<PrototypeDungeonRoom>>();
+
+        public List<PrototypeDungeonRoom> TakeBlueprintNpcRooms()
+        {
+            var blueprint = MetaInjectionData.CurrentRunBlueprint;
+            if (blueprint == null || !blueprint.ContainsKey(Tileset)) return new List<PrototypeDungeonRoom>();
+
+            // If the floor gets regenerated, hand back what was taken the first time.
+            var entries = blueprint[Tileset];
+            if (entries != null && takenBlueprints.TryGetValue(entries, out var alreadyTaken)) return alreadyTaken;
+
+            var rooms = new List<PrototypeDungeonRoom>();
+            if (entries != null)
+            {
+                foreach (var meta in entries)
+                {
+                    var room = PickPassThroughNpcRoom(meta);
+                    if (room != null) rooms.Add(room);
+                }
+            }
+
+            var emptied = new List<RuntimeInjectionMetadata>();
+            takenBlueprints[emptied] = rooms;
+            blueprint[Tileset] = emptied;
+            return rooms;
+        }
+
+        private static PrototypeDungeonRoom PickPassThroughNpcRoom(RuntimeInjectionMetadata meta)
+        {
+            var options = meta.AssignedModifierData != null
+                ? new List<ProceduralFlowModifierData> { meta.AssignedModifierData }
+                : meta.injectionData?.InjectionData?.Where(m => m != null).ToList() ?? new List<ProceduralFlowModifierData>();
+            FlowFactory.Shuffle(options);
+
+            foreach (var mod in options)
+            {
+                if (mod.prerequisites != null && !SafeCheck(() => mod.prerequisites.All(p => p.CheckConditionsFulfilled())))
+                    continue;
+                var rooms = mod.exactRoom != null ? new List<PrototypeDungeonRoom> { mod.exactRoom } : RoomsOf(mod.roomTable);
+                var room = PickPassThrough(rooms);
+                if (room != null) return room;
+            }
+            return null;
+        }
+
+        public static DungeonFlowNode NodeFor(DungeonFlow flow, PrototypeDungeonRoom room) =>
+            FlowFactory.NewNode(flow, room.category, room);
+
+        private static bool SafeCheck(Func<bool> check)
+        {
+            try
+            {
+                return check();
+            }
+            catch (Exception)
+            {
+                return true;
+            }
         }
 
         private static string BossKey(PrototypeDungeonRoom room)
@@ -194,18 +299,8 @@ namespace ChallengeRuns.Floors
                     into.Add(weighted.room);
         }
 
-        private static bool PrerequisitesMet(PrototypeDungeonRoom room)
-        {
-            if (room.prerequisites == null) return true;
-            try
-            {
-                return room.prerequisites.All(p => p.CheckConditionsFulfilled());
-            }
-            catch (Exception)
-            {
-                return true;
-            }
-        }
+        private static bool PrerequisitesMet(PrototypeDungeonRoom room) =>
+            room.prerequisites == null || SafeCheck(() => room.prerequisites.All(p => p.CheckConditionsFulfilled()));
 
         private static bool IsShop(DungeonFlowNode node)
         {
