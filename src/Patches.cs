@@ -27,6 +27,22 @@ namespace ChallengeRuns
         }
     }
 
+    // The Ammonomicon's death/victory pages set themselves up here, which is when the run is over.
+    [HarmonyPatch(typeof(AmmonomiconDeathPageController), nameof(AmmonomiconDeathPageController.DoInitialize))]
+    internal static class RunEndedPatch
+    {
+        private static void Postfix(AmmonomiconDeathPageController __instance)
+        {
+            if (!GameManager.HasInstance || GameManager.Instance.IsFoyer) return;
+            bool everyoneDead = true;
+            foreach (var player in GameManager.Instance.AllPlayers)
+                if (player != null && player.healthHaver != null && player.healthHaver.IsAlive)
+                    everyoneDead = false;
+            if (__instance.isVictoryPage || everyoneDead)
+                ChallengeManager.OnRunEnded();
+        }
+    }
+
     // HealthHaver.Start runs after difficulty scaling is set up, so changes here stick.
     [HarmonyPatch(typeof(HealthHaver), "Start")]
     internal static class EnemySpawnPatch

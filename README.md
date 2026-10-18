@@ -26,16 +26,16 @@ Marathon and Arena can't be on at the same time. Either one can be combined with
 Settings live in the config file under `[Marathon]` (rooms per floor, min/max shops, side rooms) and `[Arena]` (waves, chest rooms).
 
 ## Choosing challenges
-- **In game:** press **F6** in the Breach to open the picker.
+- **In game:** press **F6** in the Breach to open the picker. It also opens by itself on the game over and victory screens, so you can change challenges before you Quick Restart or go back to the Breach.
 - **Console:** `challenge list`, `challenge on glass noheal`, `challenge off glass`, `challenge clear`.
 - **Config file:** `BepInEx/config/oakesnoah.etg.challengeruns.cfg`
 
-Your choices are saved between sessions. They lock in when a run starts and can only be changed in the Breach.
+Your choices are saved between sessions. They lock in when a run starts and can only be changed in the Breach or on the game over/victory screen.
 
 ## Installing with r2modman
 1. In r2modman, select Enter the Gungeon and your profile.
 2. Install **Mod the Gungeon API** from the online list if you don't already have it. It brings in the BepInEx pack.
-3. Go to **Settings → Profile → Import local mod**, choose `dist/oakesnoah-ChallengeRuns-0.2.0.zip`, and confirm.
+3. Go to **Settings → Profile → Import local mod**, choose `dist/oakesnoah-ChallengeRuns-0.3.0.zip`, and confirm.
 4. Launch with **Start modded**. In the Breach, press F6, or open the console with F2 and type `challenge help`.
 
 ## Building

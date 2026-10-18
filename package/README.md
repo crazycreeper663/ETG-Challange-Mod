@@ -4,9 +4,10 @@ Choose challenge modifiers in the Breach, then start a run. You can stack as man
 
 ## How to pick challenges
 - Press **F6** in the Breach to open the picker.
+- When you die or win, the picker opens by itself on the game over screen. Change challenges there, then **Quick Restart** or head back to the Breach and the next run uses them.
 - Or use the console (F2): `challenge list`, `challenge on glass noheal`, `challenge off glass`, `challenge clear`.
 
-Your picks are saved between sessions. They lock in when a run starts and can only be changed in the Breach.
+Your picks are saved between sessions. They lock in when a run starts and can only be changed in the Breach or on the game over screen.
 
 ## Challenges
 | id | Challenge | Effect |
