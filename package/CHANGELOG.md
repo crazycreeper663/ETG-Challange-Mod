@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.5
+- Fixed: leaving an Arena floor mid-waves (e.g. back to the Breach) left the wave counter running in the Breach.
+- Fixed: starting a run could get stuck on the loading screen when the game failed to fit an Arena floor's rooms over and over. The chest rooms, NPCs and shop now form one short trail off the arena (like a mini Marathon) instead of crowding around it, which fits far more easily.
+- Safety net for both Marathon and Arena: after 3 failed tries a smaller floor is built, and after 8 the floor uses its normal layout (with a console message) rather than retrying forever.
+- Fixed: some enemies (e.g. Grenade Kin) were skipped in Arena waves because their size couldn't be read before spawning.
+
 ## 0.3.4
 - Fixed: after you went back to the Breach, the mod stopped noticing new floors. The next run kept the previous run's challenges even if you changed them, Glass Cannon and Gun Roulette weren't set up, and Arena waves never started.
 - Arena floors no longer get the game's injected side rooms (secret rooms, shrines and the like) by default. With them on, most floor layouts failed to generate around the arena, and the quick-restart freeze happened right after one of those layouts finally went through. Set `[Arena] AllowInjectedSideRooms` to get them back.

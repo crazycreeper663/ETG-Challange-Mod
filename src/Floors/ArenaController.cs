@@ -50,14 +50,19 @@ namespace ChallengeRuns.Floors
                 return;
             }
             Debug.Log("[Challenge Runs] Arena room found; waves start when you walk in.");
-            running = Plugin.Instance.StartCoroutine(RunArena(arena, levelToken));
+            running = Plugin.Instance.StartCoroutine(RunArena(arena, levelToken, GameManager.Instance.Dungeon));
         }
 
-        private static IEnumerator RunArena(RoomHandler room, int token)
+        // False once the floor the waves belong to is gone: a new floor, a quick restart or back to the Breach.
+        private static bool StillOn(int token, Dungeon dungeon) =>
+            token == levelToken && GameManager.HasInstance && !GameManager.Instance.IsFoyer &&
+            GameManager.Instance.Dungeon != null && GameManager.Instance.Dungeon == dungeon;
+
+        private static IEnumerator RunArena(RoomHandler room, int token, Dungeon dungeon)
         {
             while (!GameManager.Instance.AllPlayers.Any(p => p != null && p.CurrentRoom == room))
             {
-                if (token != levelToken) yield break;
+                if (!StillOn(token, dungeon)) yield break;
                 yield return null;
             }
 
@@ -67,14 +72,16 @@ namespace ChallengeRuns.Floors
 
             for (int wave = 1; wave <= waves; wave++)
             {
+                if (!StillOn(token, dungeon)) yield break;
                 Notify.Show($"Wave {wave} / {waves}", wave == waves ? "Final wave!" : "Survive.");
                 yield return new WaitForSeconds(2f);
-                if (token != levelToken) yield break;
+                if (!StillOn(token, dungeon)) yield break;
 
                 var enemies = PickWave(templates, out string source);
                 Debug.Log($"[Challenge Runs] Arena wave {wave}/{waves}: {enemies.Count} enemies ({source})");
                 foreach (var prefab in enemies)
                 {
+                    if (!StillOn(token, dungeon)) yield break;
                     TrySpawn(room, prefab);
                     yield return new WaitForSeconds(0.1f);
                 }
@@ -83,11 +90,12 @@ namespace ChallengeRuns.Floors
                 float elapsed = 0f;
                 while (room.GetActiveEnemiesCount(RoomHandler.ActiveEnemyType.RoomClear) > 0)
                 {
-                    if (token != levelToken) yield break;
+                    if (!StillOn(token, dungeon)) yield break;
                     elapsed += Time.deltaTime;
                     if (elapsed > StuckWaveTimeout) EraseRemaining(room);
                     yield return null;
                 }
+                if (!StillOn(token, dungeon)) yield break;
                 // Anything left that doesn't count for clearing (e.g. something a mod spawned) goes too.
                 EraseRemaining(room);
                 RollRoomClearReward(room);
@@ -200,7 +208,7 @@ namespace ChallengeRuns.Floors
         {
             if (prefab == null || prefab.specRigidbody == null) return;
 
-            var clearance = prefab.specRigidbody.UnitDimensions.ToIntVector2(VectorConversions.Ceil);
+            var clearance = ClearanceOf(prefab);
             var data = GameManager.Instance.Dungeon.data;
             CellValidator validator = c =>
             {
@@ -215,6 +223,20 @@ namespace ChallengeRuns.Floors
             var cell = room.GetRandomAvailableCell(clearance, CellTypes.FLOOR, false, validator);
             if (cell.HasValue)
                 AIActor.Spawn(prefab, cell.Value, room, true, AIActor.AwakenAnimationType.Spawn, true);
+        }
+
+        // Some enemies (GrenadeGuy, for one) only build their collision box once spawned, so the prefab
+        // can't report a size; those get a typical 2x2.
+        private static IntVector2 ClearanceOf(AIActor prefab)
+        {
+            try
+            {
+                return prefab.specRigidbody.UnitDimensions.ToIntVector2(VectorConversions.Ceil);
+            }
+            catch (Exception)
+            {
+                return new IntVector2(2, 2);
+            }
         }
 
         private static void EraseRemaining(RoomHandler room)
