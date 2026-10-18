@@ -1,3 +1,4 @@
+using System.Linq;
 using HarmonyLib;
 
 namespace ChallengeRuns
@@ -18,11 +19,11 @@ namespace ChallengeRuns
         private static bool Prefix(Gun __instance, PlayerController player)
         {
             if (!ChallengeManager.IsActive("starter") || ChallengeManager.GrantingGun) return true;
-            if (player != null && player.inventory != null && player.inventory.ContainsGun(__instance.PickupObjectId))
+            if (player != null && player.inventory != null &&
+                player.inventory.AllGuns.Any(g => g.PickupObjectId == __instance.PickupObjectId))
                 return true; // let ammo top-ups through
 
-            GameUIRoot.Instance?.notificationController?.DoCustomNotification(
-                "Starter Gun Only", "You can't pick up new guns!", null, -1);
+            Notify.Show("Starter Gun Only", "You can't pick up new guns!");
             return false;
         }
     }
@@ -38,7 +39,9 @@ namespace ChallengeRuns
             foreach (var player in GameManager.Instance.AllPlayers)
                 if (player != null && player.healthHaver != null && player.healthHaver.IsAlive)
                     everyoneDead = false;
-            if (__instance.isVictoryPage || everyoneDead)
+            // Read by reflection: the field may not be public in the game.
+            bool victory = Traverse.Create(__instance).Field("isVictoryPage").GetValue() is bool b && b;
+            if (victory || everyoneDead)
                 ChallengeManager.OnRunEnded();
         }
     }

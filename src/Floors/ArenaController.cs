@@ -127,7 +127,7 @@ namespace ChallengeRuns.Floors
 
         private static void Notify(string header, string text)
         {
-            GameUIRoot.Instance?.notificationController?.DoCustomNotification(header, text, null, -1);
+            ChallengeRuns.Notify.Show(header, text);
         }
     }
 }

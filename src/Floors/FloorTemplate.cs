@@ -1,7 +1,9 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Dungeonator;
+using HarmonyLib;
 using UnityEngine;
 
 namespace ChallengeRuns.Floors
@@ -144,26 +146,42 @@ namespace ChallengeRuns.Floors
             return result;
         }
 
+        // BossManager's data and methods are private in the game, and the game refuses direct calls
+        // to them (MethodAccessException), so everything here goes through reflection.
         private List<GenericRoomTable> BossTablesForFloor()
         {
             var tables = new List<GenericRoomTable>();
-            var manager = GameManager.Instance.BossManager;
+            var manager = Traverse.Create(GameManager.Instance).Property("BossManager").GetValue();
             if (manager == null) return tables;
 
-            var entry = manager.GetBossDataForFloor(Tileset);
-            if (entry?.Bosses != null)
-                foreach (var boss in entry.Bosses)
-                    if (boss?.TargetRoomTable != null && SafeCheck(boss.GlobalPrereqsValid))
-                        tables.Add(boss.TargetRoomTable);
+            if (Traverse.Create(manager).Field("BossFloorData").GetValue() is IEnumerable floors)
+            {
+                foreach (var floor in floors)
+                {
+                    if (!CoversThisFloor(floor)) continue;
+                    if (Traverse.Create(floor).Field("Bosses").GetValue() is IEnumerable bosses)
+                        foreach (var boss in bosses)
+                            AddBossTable(tables, boss, () => Traverse.Create(boss).Method("GlobalPrereqsValid").GetValue<bool>());
+                }
+            }
 
             // Rare bosses that can replace the usual pick on this floor.
-            if (manager.OverrideBosses != null)
-                foreach (var boss in manager.OverrideBosses)
-                    if (boss?.TargetRoomTable != null && (boss.AssociatedTilesets & Tileset) != 0 &&
-                        SafeCheck(() => boss.GlobalPrereqsValid(Tileset)))
-                        tables.Add(boss.TargetRoomTable);
+            if (Traverse.Create(manager).Field("OverrideBosses").GetValue() is IEnumerable overrides)
+                foreach (var boss in overrides)
+                    if (CoversThisFloor(boss))
+                        AddBossTable(tables, boss, () => Traverse.Create(boss).Method("GlobalPrereqsValid", new object[] { Tileset }).GetValue<bool>());
 
             return tables.Distinct().ToList();
+        }
+
+        private bool CoversThisFloor(object entry) =>
+            entry != null && (Traverse.Create(entry).Field("AssociatedTilesets").GetValue<GlobalDungeonData.ValidTilesets>() & Tileset) != 0;
+
+        private static void AddBossTable(List<GenericRoomTable> tables, object boss, Func<bool> prerequisitesMet)
+        {
+            if (boss == null) return;
+            var table = Traverse.Create(boss).Field("TargetRoomTable").GetValue<GenericRoomTable>();
+            if (table != null && SafeCheck(prerequisitesMet)) tables.Add(table);
         }
 
         // Fallback for floors BossManager doesn't cover: read the pool off the flow's boss node.
@@ -207,6 +225,10 @@ namespace ChallengeRuns.Floors
         private static readonly Dictionary<List<RuntimeInjectionMetadata>, List<PrototypeDungeonRoom>> takenBlueprints =
             new Dictionary<List<RuntimeInjectionMetadata>, List<PrototypeDungeonRoom>>();
 
+        private List<RuntimeInjectionMetadata> pendingEmptyBlueprint;
+
+        // Picks the trail-friendly NPC rooms; the blueprint itself is only emptied by
+        // CommitBlueprintChanges once the whole floor has been built.
         public List<PrototypeDungeonRoom> TakeBlueprintNpcRooms()
         {
             var blueprint = MetaInjectionData.CurrentRunBlueprint;
@@ -226,10 +248,16 @@ namespace ChallengeRuns.Floors
                 }
             }
 
-            var emptied = new List<RuntimeInjectionMetadata>();
-            takenBlueprints[emptied] = rooms;
-            blueprint[Tileset] = emptied;
+            pendingEmptyBlueprint = new List<RuntimeInjectionMetadata>();
+            takenBlueprints[pendingEmptyBlueprint] = rooms;
             return rooms;
+        }
+
+        public void CommitBlueprintChanges()
+        {
+            if (pendingEmptyBlueprint == null || MetaInjectionData.CurrentRunBlueprint == null) return;
+            MetaInjectionData.CurrentRunBlueprint[Tileset] = pendingEmptyBlueprint;
+            pendingEmptyBlueprint = null;
         }
 
         private static PrototypeDungeonRoom PickPassThroughNpcRoom(RuntimeInjectionMetadata meta)

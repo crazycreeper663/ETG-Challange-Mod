@@ -10,7 +10,7 @@ namespace ChallengeRuns
     {
         public const string GUID = "oakesnoah.etg.challengeruns";
         public const string NAME = "Challenge Runs";
-        public const string VERSION = "0.3.0"; // keep in sync with <Version> in the .csproj
+        public const string VERSION = "0.3.1"; // keep in sync with <Version> in the .csproj
 
         public static Plugin Instance { get; private set; }
 
