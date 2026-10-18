@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Dungeonator;
+using HarmonyLib;
 using Pathfinding;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -81,6 +82,7 @@ namespace ChallengeRuns.Floors
                 }
                 // Anything left that doesn't count for clearing (e.g. something a mod spawned) goes too.
                 EraseRemaining(room);
+                RollRoomClearReward(room);
 
                 if (wave % SupplyDropEvery == 0 && wave < waves)
                     DropSupplies(room);
@@ -214,6 +216,24 @@ namespace ChallengeRuns.Floors
             foreach (var enemy in enemies.ToList())
                 if (enemy != null && enemy.IsNormalEnemy)
                     enemy.EraseFromExistence(false);
+        }
+
+        // Each cleared wave gets the same pickup roll as clearing a normal room, using the game's own
+        // room-clear reward code (so the usual drop chances and modded loot changes apply). A room
+        // normally only gets that roll once, so its "already rewarded" flag is reset first. Both are
+        // non-public, hence reflection.
+        private static void RollRoomClearReward(RoomHandler room)
+        {
+            try
+            {
+                Traverse.Create(room).Field("m_hasGivenReward").SetValue(false);
+                Traverse.Create(room).Field("EverHadEnemies").SetValue(true);
+                AccessTools.Method(typeof(RoomHandler), "HandleRoomClearReward")?.Invoke(room, null);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[Challenge Runs] Couldn't roll the wave reward: {e}");
+            }
         }
 
         private static void DropSupplies(RoomHandler room)

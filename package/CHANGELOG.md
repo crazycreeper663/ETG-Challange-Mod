@@ -5,6 +5,7 @@
 - Each Arena wave is now one of the floor's real combat rooms' worth of enemies, including random-enemy slots and reinforcements. The next wave comes once all of them are dead.
 - Enemies that don't count towards clearing a room (turrets and the like) are left out of waves so they can't stall them, and leftovers are cleared between waves.
 - A failed enemy spawn can no longer stop the waves while the arena is locked.
+- Every cleared Arena wave now has the same chance to drop a pickup (ammo, key, blank, heart, etc.) as clearing a normal room.
 
 ## 0.3.2
 - Removed the Fully Jammed challenge.
