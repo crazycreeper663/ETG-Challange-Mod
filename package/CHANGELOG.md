@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.2
+- Removed the Fully Jammed challenge.
+
 ## 0.3.1
 - Fixed: Marathon (and Arena) floors fell back to the normal layout. Reading the floor's boss list crashed because the game blocks direct access to its private boss data; it's now read by reflection.
 - If building part of a Marathon/Arena floor fails (the boss list or the trail NPCs), the floor is still built without that part instead of reverting to the normal layout.

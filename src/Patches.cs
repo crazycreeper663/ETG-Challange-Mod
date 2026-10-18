@@ -55,9 +55,6 @@ namespace ChallengeRuns
             var enemy = __instance.aiActor;
             if (enemy == null || !enemy.IsNormalEnemy || enemy.CompanionOwner != null) return;
 
-            if (ChallengeManager.IsActive("jammed") && !enemy.IsBlackPhantom)
-                enemy.BecomeBlackPhantom();
-
             if (ChallengeManager.IsActive("sponge"))
                 __instance.SetHealthMaximum(__instance.GetMaxHealth() * ChallengeManager.EnemyHealthMultiplier, null, true);
         }

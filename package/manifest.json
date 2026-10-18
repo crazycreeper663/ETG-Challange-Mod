@@ -2,7 +2,7 @@
   "name": "ChallengeRuns",
   "version_number": "$VERSION$",
   "website_url": "",
-  "description": "Pick challenge modifiers in the Breach (F6): Glass Cannon, No Healing, Gun Roulette, Fully Jammed, plus Marathon and Arena floor modes and more.",
+  "description": "Pick challenge modifiers in the Breach (F6): Glass Cannon, No Healing, Gun Roulette, Bullet Sponges, plus Marathon and Arena floor modes and more.",
   "dependencies": [
     "MtG_API-Mod_the_Gungeon_API-1.9.2"
   ]
