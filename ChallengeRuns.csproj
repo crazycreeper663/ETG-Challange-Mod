@@ -1,0 +1,64 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net35</TargetFramework>
+    <AssemblyName>ChallengeRuns</AssemblyName>
+    <RootNamespace>ChallengeRuns</RootNamespace>
+    <LangVersion>latest</LangVersion>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <!-- Keep in sync with Plugin.VERSION. Thunderstore needs plain major.minor.patch. -->
+    <Version>0.2.0</Version>
+    <ThunderstoreTeam>oakesnoah</ThunderstoreTeam>
+  </PropertyGroup>
+
+  <!--
+    Where to find the game/BepInEx/MtGAPI DLLs to compile against. Pick one:
+      * Default: your Steam install + an r2modman profile (edit the two paths below, or pass
+        -p:GameDir=... -p:BepInExDir=... on the command line).
+      * -p:LibDir=some/folder containing managed/, core/ and mtgapi/ subfolders.
+  -->
+  <PropertyGroup>
+    <GameDir Condition="'$(GameDir)' == ''">C:/Program Files (x86)/Steam/steamapps/common/Enter the Gungeon</GameDir>
+    <BepInExDir Condition="'$(BepInExDir)' == ''">$(APPDATA)/r2modmanPlus-local/ETG/profiles/Default/BepInEx</BepInExDir>
+
+    <ManagedDir Condition="'$(LibDir)' == ''">$(GameDir)/EtG_Data/Managed</ManagedDir>
+    <BepInExCoreDir Condition="'$(LibDir)' == ''">$(BepInExDir)/core</BepInExCoreDir>
+    <MtGAPIDir Condition="'$(LibDir)' == ''">$(BepInExDir)/plugins</MtGAPIDir>
+
+    <ManagedDir Condition="'$(LibDir)' != ''">$(LibDir)/managed</ManagedDir>
+    <BepInExCoreDir Condition="'$(LibDir)' != ''">$(LibDir)/core</BepInExCoreDir>
+    <MtGAPIDir Condition="'$(LibDir)' != ''">$(LibDir)/mtgapi</MtGAPIDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="$(ManagedDir)/Assembly-CSharp.dll" Private="false" />
+    <Reference Include="$(ManagedDir)/Assembly-CSharp-firstpass.dll" Private="false" Condition="Exists('$(ManagedDir)/Assembly-CSharp-firstpass.dll')" />
+    <Reference Include="$(ManagedDir)/PlayMaker.dll" Private="false" Condition="Exists('$(ManagedDir)/PlayMaker.dll')" />
+    <Reference Include="$(ManagedDir)/UnityEngine*.dll" Private="false" />
+    <Reference Include="$(BepInExCoreDir)/BepInEx.dll" Private="false" />
+    <Reference Include="$(BepInExCoreDir)/0Harmony.dll" Private="false" />
+    <!-- r2modman puts MtGAPI in its own subfolder of plugins/, so search for it. -->
+    <Reference Include="$(MtGAPIDir)/**/ModTheGungeonAPI.dll" Private="false" />
+  </ItemGroup>
+
+  <!-- Release builds also produce dist/<team>-ChallengeRuns-<version>.zip for r2modman's "Import local mod". -->
+  <Target Name="PackageForR2modman" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
+    <PropertyGroup>
+      <StageDir>$(MSBuildProjectDirectory)/obj/r2modman-package</StageDir>
+      <DistDir>$(MSBuildProjectDirectory)/dist</DistDir>
+      <PackageZip>$(DistDir)/$(ThunderstoreTeam)-$(AssemblyName)-$(Version).zip</PackageZip>
+      <ManifestText>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)/package/manifest.json').Replace('$VERSION$', '$(Version)'))</ManifestText>
+    </PropertyGroup>
+    <RemoveDir Directories="$(StageDir)" />
+    <MakeDir Directories="$(StageDir);$(DistDir)" />
+    <Copy SourceFiles="$(TargetPath);package/icon.png;package/README.md;package/CHANGELOG.md" DestinationFolder="$(StageDir)" />
+    <WriteLinesToFile File="$(StageDir)/manifest.json" Lines="$([MSBuild]::Escape($(ManifestText)))" Overwrite="true" />
+    <ZipDirectory SourceDirectory="$(StageDir)" DestinationFile="$(PackageZip)" Overwrite="true" />
+    <Message Importance="high" Text="r2modman package: $(PackageZip)" />
+  </Target>
+
+</Project>
